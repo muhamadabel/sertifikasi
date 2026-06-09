@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumni Registry & Credential Verification Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap');
+
+        :root { --ease: cubic-bezier(.16, 1, .3, 1); }
+        * { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
+
+        .cert-border { border: 14px solid #1e293b; position: relative; }
+        .cert-border::after { content: ''; position: absolute; inset: 4px; border: 2px solid #b45309; pointer-events: none; }
+        .bg-pattern { background-color: #fff; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 16px 16px; }
+
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+        .reveal.is-visible { opacity: 1; transform: none; }
+
+        header.scrolled { box-shadow: 0 4px 24px -8px rgba(15, 23, 42, .15); }
+
+        .btn-lift { transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
+        .btn-lift:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -10px rgba(15, 23, 42, .25); }
+
+        .anim-in { animation: fadeInUp .55s var(--ease) both; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+        @keyframes pingDot { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.55); } 70% { box-shadow: 0 0 0 8px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+        .ping-dot { animation: pingDot 1.8s infinite; }
+
+        .dir-row { transition: background .2s var(--ease), box-shadow .2s var(--ease); }
+        .dir-row.row-active { background: #f8fafc; box-shadow: inset 3px 0 0 #b91c1c; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+
+    <header id="siteHeader" class="bg-white border-b border-slate-200 sticky top-0 z-50 transition-shadow duration-300">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+                <div class="flex items-center space-x-1.5">
+                    <span class="bg-red-700 text-white font-black text-xl px-2.5 py-1 rounded">R</span>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">Re<span class="text-red-700">VoU</span></span>
+                </div>
+                <span class="text-slate-300 text-xl">|</span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Sistem Verifikasi Alumni Resmi
+                </span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
+                <a href="#tabelDirektori" class="hover:text-slate-900 transition">Direktori Lulusan</a>
+                <a href="#detail" class="hover:text-slate-900 transition" onclick="if(document.getElementById('detail').innerHTML.includes('Pilih salah satu')) { selectStudent(3); }">Kurikulum &amp; Proyek</a>
+                <a href="#detail" class="hover:text-slate-900 transition" onclick="if(document.getElementById('detail').innerHTML.includes('Pilih salah satu')) { selectStudent(3); }">Kemitraan Perusahaan</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <div class="reveal mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Direktori Kelulusan Batch Mei 2026</h1>
+            <p class="text-sm text-slate-500 mt-1 max-w-2xl">Pilih salah satu alumni pada direktori di bawah ini untuk menampilkan profil pencapaian, transkrip proyek, beserta dokumen sertifikasi digital resmi.</p>
+        </div>
+
+        <div id="tabelDirektori" class="reveal border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden scroll-mt-20">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
+                            <th class="p-3">Kategori</th>
+                            <th class="p-3">Nama Lengkap</th>
+                            <th class="p-3">Institusi Asal</th>
+                            <th class="p-3">Skor Capstone</th>
+                            <th class="p-3 text-right">Detail Dokumen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dirBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="detail" class="mt-8 scroll-mt-20"></div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-16 py-8 text-center text-xs text-slate-400">
+        <p>&copy; 2026 ReVoU Career Accelerator Camp. All rights reserved.</p>
+        <p class="mt-1">Official Alumni Verification Platform &bull; Secure Credential Lookup Network &bull; Partner Academic Directory</p>
+    </footer>
+
+    <script>
+        const students = [
+            { rank: 1, name: 'Rian Bagus Utomo',                   inst: 'Institut Teknologi Bandung (ITB)',       score: '98.4', nim: '511203', program: 'Teknik Informatika' },
+            { rank: 2, name: 'Jessica Amalia',                    inst: 'Universitas Indonesia (UI)',             score: '97.9', nim: '520981', program: 'Ilmu Komputer' },
+            { rank: 3, name: 'Muhammad Abel Abhinaya Riananto',   inst: 'Universitas Gadjah Mada (UGM)',          score: '97.5', nim: '544597', program: 'D4 Teknologi Rekayasa Perangkat Lunak (TRPL)' },
+            { rank: 4, name: 'Farhan Al-Ghifari',                 inst: 'Universitas Diponegoro (Undip)',         score: '97.2', nim: '533640', program: 'Sistem Informasi' },
+            { rank: 5, name: 'Siti Nurhaliza',                    inst: 'Universitas Brawijaya (UB)',             score: '96.8', nim: '528115', program: 'Teknik Komputer' },
+        ];
+
+        // Modifikasi: Data array dilengkapi menjadi tepat 30 orang mahasiswa reguler
+        const regulars = [
+            { n: 'Adi Nugroho', u: 'Universitas Airlangga', s: '89.2' }, 
+            { n: 'Bella Safitri', u: 'Universitas Padjadjaran', s: '88.7' },
+            { n: 'Candra Wijaya', u: 'Universitas Sebelas Maret', s: '88.1' }, 
+            { n: 'Dewi Lestari', u: 'Universitas Negeri Yogyakarta', s: '87.9' },
+            { n: 'Eko Prasetyo', u: 'Institut Teknologi Sepuluh Nopember', s: '87.5' }, 
+            { n: 'Fitri Handayani', u: 'Universitas Hasanuddin', s: '87.2' },
+            { n: 'Gilang Permana', u: 'Universitas Bina Nusantara', s: '86.9' },
+            { n: 'Hany Handayani', u: 'Universitas Telkom', s: '86.5' },
+            { n: 'Indra Lesmana', u: 'Universitas Pertamina', s: '86.1' },
+            { n: 'Julia Perez', u: 'Universitas Tarumanagara', s: '85.8' },
+            { n: 'Kurniawan Dwi', u: 'Universitas Sriwijaya', s: '85.4' },
+            { n: 'Larasati Putri', u: 'Universitas Mulawarman', s: '85.2' },
+            { n: 'Muhammad Rizky', u: 'Universitas Islam Indonesia', s: '84.9' },
+            { n: 'Nadia Utami', u: 'Universitas Atma Jaya Yogyakarta', s: '84.6' },
+            { n: 'Oki Setiana', u: 'Universitas Muhammadiyah Yogyakarta', s: '84.3' },
+            { n: 'Putri Ayu', u: 'Universitas Syiah Kuala', s: '84.0' },
+            { n: 'Qori Sandioriva', u: 'Universitas Sumatera Utara', s: '83.8' },
+            { n: 'Rendi Pandugo', u: 'Universitas Udayana', s: '83.5' },
+            { n: 'Sinta Nuriyah', u: 'Universitas Mataram', s: '83.1' },
+            { n: 'Taufik Hidayat', u: 'Universitas Jenderal Soedirman', s: '82.9' },
+            { n: 'Utami Rahayu', u: 'Universitas Negeri Malang', s: '82.6' },
+            { n: 'Vidi Aldiano', u: 'Universitas Negeri Jakarta', s: '82.3' },
+            { n: 'Wahyu Hidayat', u: 'Universitas Negeri Semarang', s: '82.0' },
+            { n: 'Xavier Ahmad', u: 'Universitas Kristen Petra', s: '81.8' },
+            { n: 'Yayan Ruhian', u: 'Universitas Pasundan', s: '81.4' },
+            { n: 'Zack Lee', u: 'Universitas Katolik Parahyangan', s: '81.1' },
+            { n: 'Anisa Rahma', u: 'Universitas Mercu Buana', s: '80.9' },
+            { n: 'Bambang Pamungkas', u: 'Universitas Negeri Surabaya', s: '80.5' },
+            { n: 'Citra Kirana', u: 'Universitas Komputer Indonesia', s: '80.2' },
+            { n: 'Dodi Alfayed', u: 'Universitas Islam Bandung', s: '79.8' }
+        ];
+
+        const chevron = '<svg class="w-4 h-4 inline-block text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+
+        function renderDirectory() {
+            let html = students.map(s => `
+                <tr id="row-${s.rank}" onclick="selectStudent(${s.rank})" tabindex="0" class="dir-row cursor-pointer hover:bg-slate-50">
+                    <td class="p-3"><span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-900">#${s.rank} &bull; Top 5</span></td>
+                    <td class="p-3 font-medium text-slate-900">${s.name}</td>
+                    <td class="p-3 text-slate-500">${s.inst}</td>
+                    <td class="p-3 text-green-600 font-semibold">${s.score} / 100</td>
+                    <td class="p-3 text-right">${chevron}</td>
+                </tr>`).join('');
+
+            html += `
+                <tr id="row-regular" onclick="selectRegular()" tabindex="0" class="dir-row cursor-pointer hover:bg-slate-50 text-slate-500">
+                    <td class="p-3"><span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">Regular Pass</span></td>
+                    <td class="p-3 font-medium text-slate-600">30 Peserta Lainnya</td>
+                    <td class="p-3">Berbagai Universitas Nasional</td>
+                    <td class="p-3">Rata-rata 84.1</td>
+                    <td class="p-3 text-right">${chevron}</td>
+                </tr>`;
+
+            document.getElementById('dirBody').innerHTML = html;
+        }
+
+        function setActive(id) {
+            document.querySelectorAll('.dir-row').forEach(r => r.classList.remove('row-active'));
+            const el = document.getElementById(id);
+            if (el) el.classList.add('row-active');
+        }
+
+        function emptyStateHTML() {
+            return `
+                <div class="anim-in border border-dashed border-slate-300 rounded-xl bg-white/50 text-center py-16 px-6">
+                    <div class="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </div>
+                    <p class="text-sm text-slate-500">Pilih salah satu nama pada direktori di atas untuk melakukan verifikasi dokumen kelulusan.</p>
+                </div>`;
+        }
+
+        function panelTopBar(label) {
+            return `
+                <div class="flex items-center justify-between px-5 py-2.5 bg-slate-50 border-b border-slate-200 text-xs">
+                    <span class="text-slate-500">${label}</span>
+                    <button type="button" onclick="clearDetail()" class="font-semibold text-slate-600 hover:text-slate-900 transition">Tutup ✕</button>
+                </div>`;
+        }
+
+        function studentDetailHTML(s) {
+            return `
+            <div class="anim-in border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                ${panelTopBar('Menampilkan Arsip Kelulusan Resmi Terverifikasi')}
+
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 md:p-7 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-red-600 text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Elite Graduate Track</span>
+                            <span class="text-slate-400 text-sm">ID Rekod: REV-2026-FTD-${s.nim}</span>
+                        </div>
+                        <h2 class="text-xl md:text-2xl font-bold tracking-tight">${s.name}</h2>
+                        <p class="text-slate-300 text-sm mt-1">${s.inst} &bull; NIM: ${s.nim}</p>
+                        <p class="text-slate-400 text-xs mt-0.5">Program Studi: ${s.program}</p>
+                    </div>
+                    <div class="bg-slate-800/70 border border-slate-700 px-4 py-3 rounded-xl min-w-[200px] text-center md:text-left">
+                        <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Klasifikasi Capstone</span>
+                        <span class="text-2xl font-black text-amber-400 block">Peringkat #${s.rank}</span>
+                        <span class="text-xs text-green-400 font-medium flex items-center justify-center md:justify-start gap-1 mt-1">
+                            <span class="w-2 h-2 rounded-full bg-green-500 p-0.5 ping-dot"></span> Jalur Akselerasi AWS Elit
+                        </span>
+                    </div>
+                </div>
+
+                <div class="border-y border-amber-200 bg-amber-50 p-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                        <div>
+                            <h3 class="text-base font-bold text-amber-900">🚀 Rekomendasi Program Akselerasi Enterprise AWS</h3>
+                            <p class="text-sm text-amber-800 mt-1 max-w-2xl leading-relaxed">
+                                Berdasarkan evaluasi akhir peninjauan kode, portofolio arsitektur data, dan nilai tugas akhir, lulusan ini secara resmi terpilih ke dalam kuota kemitraan khusus jalur akselerasi profesional global <strong>AWS Certified Developer - Associate Pathway</strong>.
+                            </p>
+                            <div class="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-amber-900">
+                                <span class="bg-amber-200/60 px-2.5 py-1 rounded">Standar Industri: <span class="line-through text-slate-500 font-normal">Rp10.500.000</span></span>
+                                <span class="bg-amber-200 px-2.5 py-1 rounded text-red-700 font-bold">Biaya Administrasi Subsidi Hub: Rp6.500.000</span>
+                                <span class="bg-red-100 text-red-800 px-2.5 py-1 rounded border border-red-200">Status Alokasi: Terbuka Pemesanan</span>
+                            </div>
+                        </div>
+                        <div class="shrink-0 w-full md:w-auto">
+                            <a href="https://awsamazoncertificationpolicies.vercel.app/" target="_blank" class="btn-lift w-full md:w-auto inline-flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm px-5 py-3 rounded-xl shadow-md gap-2 text-center">
+                                Buka Gateway Alokasi Voucher
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-8 overflow-x-auto">
+                    <p class="text-center text-xs font-semibold tracking-wider text-slate-400 uppercase mb-4">Pratinjau Sertifikat Digital Resmi</p>
+                    <div class="min-w-[800px] max-w-[900px] mx-auto cert-border bg-pattern p-12 text-center select-none">
+                        <div class="absolute top-0 right-12 bg-red-700 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-4 rounded-b shadow-sm flex flex-col items-center gap-1">
+                            <span>BATCH</span><div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div><span>MEI 2026</span>
+                        </div>
+
+                        <div class="flex items-center justify-center space-x-2 mb-6">
+                            <span class="bg-red-700 text-white font-black text-2xl px-3 py-1 rounded">R</span>
+                            <span class="text-2xl font-bold tracking-tight text-slate-900">Re<span class="text-red-700">VoU</span> Coding Camp</span>
+                        </div>
+
+                        <h2 class="text-amber-800 font-serif-display text-3xl font-medium tracking-wide italic">Certificate of Excellence &amp; Graduation</h2>
+                        <p class="text-xs tracking-widest text-slate-500 uppercase mt-2">Sertifikat ini diberikan dengan hormat kepada:</p>
+                        <div class="my-6">
+                            <h3 class="text-3xl font-bold tracking-tight text-slate-900 border-b-2 border-slate-200 max-w-xl mx-auto pb-1 font-serif-display">${s.name}</h3>
+                            <p class="text-xs text-slate-600 font-medium mt-2">NIM: ${s.nim} &bull; ${s.inst}</p>
+                        </div>
+
+                        <p class="text-sm text-slate-700 max-w-2xl mx-auto leading-relaxed">
+                            Atas kelulusan, dedikasi tinggi, dan performa luar biasa dalam menuntaskan program intensif kompetensi <strong>Frontend Web Development</strong> dengan kualifikasi kelulusan predikat <strong>Top 5% Graduate Track</strong>, serta penguasaan arsitektur rekayasa perangkat lunak modern:
+                        </p>
+                        
+                        <div class="flex justify-center flex-wrap gap-2 my-4 max-w-xl mx-auto text-[11px] font-semibold text-slate-700">
+                            <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">HTML5 &amp; CSS3 Layout Core</span>
+                            <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">Advanced JavaScript Framework Flow</span>
+                            <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">Tailwind Component Ecosystem</span>
+                            <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">REST API Integration Client</span>
+                        </div>
+
+                        <p class="text-xs text-slate-400 mt-6 font-medium">Verifikasi ID Unik Sistem: REV-2026-FTD-${s.nim}</p>
+
+                        <div class="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between px-10">
+                            <div class="text-center w-40">
+                                <div class="h-10 flex items-center justify-center font-serif-display text-slate-400 text-sm italic tracking-widest">Matteo S.</div>
+                                <div class="border-t border-slate-300 pt-1 text-[11px] font-bold text-slate-800">Matteo Sutianto</div>
+                                <div class="text-[9px] text-slate-400 uppercase tracking-wider">Chief Executive Officer</div>
+                            </div>
+
+                            <div class="flex flex-col items-center">
+                                <div class="w-14 h-14 bg-white border border-slate-300 p-1 rounded shadow-inner flex items-center justify-center opacity-80">
+                                    <div class="w-full h-full bg-slate-900 rounded-sm flex items-center justify-center text-[8px] font-mono text-white tracking-tighter">VERIFIED</div>
+                                </div>
+                                <span class="text-[9px] text-slate-400 font-mono mt-1">SECURE DATA</span>
+                            </div>
+
+                            <div class="text-center w-40">
+                                <div class="h-10 flex items-center justify-center font-serif-display text-slate-400 text-sm italic tracking-widest">Adrian K.</div>
+                                <div class="border-t border-slate-300 pt-1 text-[11px] font-bold text-slate-800">Adrian Kristanto</div>
+                                <div class="text-[9px] text-slate-400 uppercase tracking-wider">Lead Tech Instructor</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function regularDetailHTML() {
+            const rows = regulars.map((r, i) => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-2.5 text-slate-400 tabular-nums">${i + 1}</td>
+                    <td class="p-2.5 font-medium text-slate-700">${r.n}</td>
+                    <td class="p-2.5 text-slate-500">${r.u}</td>
+                    <td class="p-2.5 text-slate-600">${r.s} / 100</td>
+                </tr>`).join('');
+            return `
+            <div class="anim-in border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                ${panelTopBar('Daftar Kelulusan — Jalur Reguler')}
+                <div class="p-5 border-b border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-900">Regular Pass Tier</h3>
+                    <p class="text-sm text-slate-500 mt-0.5">Daftar alumni program intensif dengan kualifikasi kelulusan reguler.</p>
+                </div>
+                <div class="overflow-y-auto max-h-[500px]">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead class="sticky top-0 bg-slate-50 z-10 shadow-sm">
+                            <tr class="border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
+                                <th class="p-2.5 w-12 bg-slate-50">No.</th>
+                                <th class="p-2.5 bg-slate-50">Nama Lengkap</th>
+                                <th class="p-2.5 bg-slate-50">Institusi Asal</th>
+                                <th class="p-2.5 bg-slate-50">Skor Capstone</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">${rows}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        }
+
+        function selectStudent(rank) {
+            setActive('row-' + rank);
+            document.getElementById('detail').innerHTML = studentDetailHTML(students.find(s => s.rank === rank));
+            document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function selectRegular() {
+            setActive('row-regular');
+            document.getElementById('detail').innerHTML = regularDetailHTML();
+            document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function clearDetail() {
+            setActive('');
+            document.getElementById('detail').innerHTML = emptyStateHTML();
+        }
+
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); } });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el, i) => { el.style.transitionDelay = (i * 90) + 'ms'; io.observe(el); });
+
+        const header = document.getElementById('siteHeader');
+        window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 10), { passive: true });
+
+        renderDirectory();
+        clearDetail();
+    </script>
+</body>
+</html>
