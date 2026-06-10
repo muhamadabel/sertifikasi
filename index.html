@@ -506,18 +506,45 @@
                         if (note) { note.textContent = 'QR aktif. Selesaikan sebelum waktu habis.'; note.className = 'text-[11px] mt-2 text-slate-400'; }
                     }
                     if (data.status === 'paid') showPaid(orderId);
+                    else if (data.status === 'rejected') showRejected();
                     else if (data.status === 'expired') showExpired();
                 } catch (_) { /* abaikan error sementara */ }
             }, PAYMENT_API.pollMs);
         }
 
-        function confirmPaid(orderId) {
+        async function confirmPaid(orderId) {
             if (!PAYMENT_API.base) { showPaid(orderId); return; }   // simulasi (mockup)
             const s = document.getElementById('payStatus');
             if (s) {
                 s.className = 'rounded-xl p-3 text-sm text-center bg-slate-50 text-slate-500 flex items-center justify-center gap-2';
                 s.classList.remove('hidden');
-                s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Memverifikasi pembayaran…';
+                s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Meminta verifikasi ke admin…';
+            }
+
+            try {
+                const res = await fetch(PAYMENT_API.base + '/confirm-payment', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ orderId }),
+                });
+                if (res.ok) {
+                    if (s) {
+                        s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Admin sedang memverifikasi pembayaran…';
+                    }
+                } else {
+                    if (s) {
+                        s.className = 'rounded-xl p-3 text-sm text-center bg-red-50 text-red-700';
+                        s.textContent = 'Gagal mengirim konfirmasi ke admin. Silakan coba lagi.';
+                    }
+                }
+            } catch (err) {
+                if (s) {
+                    s.className = 'rounded-xl p-3 text-sm text-center bg-red-50 text-red-700';
+                    s.textContent = 'Gagal terhubung ke server. Periksa koneksi internet Anda.';
+                }
             }
         }
 
@@ -541,6 +568,16 @@
                 s.className = 'rounded-xl p-3 text-sm text-center bg-red-50 text-red-700';
                 s.classList.remove('hidden');
                 s.textContent = 'Waktu pembayaran habis. Tutup dan ulangi pendaftaran.';
+            }
+        }
+
+        function showRejected() {
+            if (_payPoll) { clearInterval(_payPoll); _payPoll = null; }
+            const s = document.getElementById('payStatus');
+            if (s) {
+                s.className = 'rounded-xl p-3 text-sm text-center bg-red-50 text-red-700';
+                s.classList.remove('hidden');
+                s.innerHTML = 'Pembayaran ditolak/batal ❌<br><span class="text-xs font-normal">Pembayaran Anda ditolak oleh admin. Silakan hubungi kami via Telegram untuk konfirmasi.</span>';
             }
         }
 

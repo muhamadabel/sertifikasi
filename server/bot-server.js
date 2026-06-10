@@ -67,11 +67,7 @@ app.post('/create', async (req, res) => {
 
     try {
         const msg = await bot.sendMessage(ADMIN_CHAT_ID, text, {
-            parse_mode: 'Markdown',
-            reply_markup: { inline_keyboard: [[
-                { text: '✅ Tandai Lunas', callback_data: 'paid:' + orderId },
-                { text: '❌ Batalkan',     callback_data: 'cancel:' + orderId },
-            ]] },
+            parse_mode: 'Markdown'
         });
         order.notifMsgId = msg.message_id;
         msgToOrder.set(msg.message_id, orderId);
@@ -89,14 +85,48 @@ app.post('/create', async (req, res) => {
     }
 });
 
-// 2) Web cek status order
+// 2) Web konfirmasi sudah bayar -> kirim approval request ke admin
+app.post('/confirm-payment', async (req, res) => {
+    const { orderId } = req.body || {};
+    if (!orderId) return res.status(400).json({ error: 'data kurang' });
+    const order = orders.get(orderId);
+    if (!order) return res.status(404).json({ error: 'order tidak ditemukan' });
+
+    order.status = 'verifying';
+    console.log('[confirm-payment]', orderId, '-', order.name);
+
+    const text =
+        '🔔 *Konfirmasi Pembayaran Baru*\n\n' +
+        'Pengguna menyatakan telah mentransfer pembayaran:\n' +
+        '👤 Nama: ' + order.name + '\n' +
+        '🆔 NIM: ' + (order.nim || '-') + '\n' +
+        '💰 Nominal: ' + rupiah(order.amount) + '\n' +
+        '🔖 Order ID: `' + orderId + '`\n\n' +
+        'Silakan verifikasi rekening/mutasi kamu, lalu setujui atau tolak pembayaran ini.';
+
+    try {
+        await bot.sendMessage(ADMIN_CHAT_ID, text, {
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard: [[
+                { text: '✅ Setujui (Lunas)', callback_data: 'paid:' + orderId },
+                { text: '❌ Tolak',            callback_data: 'cancel:' + orderId },
+            ]] },
+        });
+        res.json({ ok: true });
+    } catch (e) {
+        console.error('Gagal kirim approval ke Telegram:', e.message);
+        res.status(500).json({ error: 'gagal kirim approval' });
+    }
+});
+
+// 3) Web cek status order
 app.get('/status', (req, res) => {
     const o = orders.get(req.query.orderId);
     if (!o) return res.json({ status: 'expired', qrReady: false });
     res.json({ status: o.status, qrReady: !!o.qrFileId });
 });
 
-// 3) Web ambil gambar QR (di-proxy; token tidak bocor ke browser)
+// 4) Web ambil gambar QR (di-proxy; token tidak bocor ke browser)
 app.get('/qr', async (req, res) => {
     const o = orders.get(req.query.orderId);
     if (!o || !o.qrFileId) return res.status(404).send('QR belum tersedia');
@@ -129,14 +159,30 @@ bot.on('photo', (msg) => {
 });
 
 // Admin menekan tombol Lunas / Batal
-bot.on('callback_query', (q) => {
+bot.on('callback_query', async (q) => {
     const [action, orderId] = (q.data || '').split(':');
     console.log('[callback]', action, orderId);
     const o = orders.get(orderId);
     if (!o) return bot.answerCallbackQuery(q.id, { text: 'Order tidak ditemukan / sudah kedaluwarsa.' });
 
-    if (action === 'paid')   { o.status = 'paid';    if (o.timer) clearTimeout(o.timer); bot.answerCallbackQuery(q.id, { text: '✅ Ditandai lunas.' }); }
-    if (action === 'cancel') { o.status = 'expired'; if (o.timer) clearTimeout(o.timer); bot.answerCallbackQuery(q.id, { text: '❌ Dibatalkan.' }); }
+    try {
+        if (action === 'paid') {
+            o.status = 'paid';
+            if (o.timer) clearTimeout(o.timer);
+            await bot.answerCallbackQuery(q.id, { text: '✅ Ditandai lunas.' });
+            await bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: q.message.chat.id, message_id: q.message.message_id });
+            await bot.sendMessage(q.message.chat.id, '✅ Pembayaran untuk order `' + orderId + '` disetujui (Lunas).');
+        }
+        if (action === 'cancel') {
+            o.status = 'rejected';
+            if (o.timer) clearTimeout(o.timer);
+            await bot.answerCallbackQuery(q.id, { text: '❌ Dibatalkan/Ditolak.' });
+            await bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: q.message.chat.id, message_id: q.message.message_id });
+            await bot.sendMessage(q.message.chat.id, '❌ Pembayaran untuk order `' + orderId + '` ditolak.');
+        }
+    } catch (e) {
+        console.error('Callback error:', e.message);
+    }
 });
 
 bot.on('polling_error', (e) => console.error('Polling error:', e.message));
