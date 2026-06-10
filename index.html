@@ -56,19 +56,14 @@
     <!-- Hero Section with Soft Yellow Background -->
     <section class="bg-[#FFFBEB] border-b border-[#594500]/5 py-12">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="reveal flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div>
-                    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Peringkat dan Sertifikasi Bootcamp Batch 2026</h1>
-                    <p class="text-sm text-[#594500]/80 mt-2 max-w-2xl font-medium">Selamat atas selesainya Bootcamp batch 2026</p>
-                </div>
-                <div class="bg-white border border-[#FAE082] px-5 py-4 rounded-2xl shadow-sm min-w-[280px] md:self-center shrink-0">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Sisa Waktu Klaim Subsidi</span>
-                    <span id="subsidyCountdown" class="text-2xl font-black text-[#594500] block mt-1 font-mono">--j --m --d</span>
-                    <div class="flex items-center gap-1.5 mt-1">
-                        <span class="w-2 h-2 rounded-full bg-red-500 ping-dot flex-shrink-0"></span>
-                        <span class="text-[10px] text-red-600 font-bold uppercase tracking-wider block">Berakhir Hari Ini Jam 12.00 WIB</span>
-                    </div>
-                </div>
+            <div class="reveal">
+                <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Peringkat dan Sertifikasi Bootcamp Batch 2026</h1>
+                <p class="text-sm mt-2 max-w-3xl leading-relaxed flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span class="font-medium text-[#594500]/80">Selamat atas selesainya Bootcamp batch 2026.</span>
+                    <span class="text-slate-300 hidden sm:inline">|</span>
+                    <span class="text-slate-500">Sisa waktu klaim AWS Certification by ReVoU:</span>
+                    <span id="subsidyCountdown" class="font-mono font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded text-[11px] tracking-wide">--j --m --d</span>
+                </p>
             </div>
         </div>
     </section>
@@ -669,15 +664,7 @@
                 if (!node) return;
                 
                 if (diff <= 0) {
-                    node.innerHTML = "00j 00m 00d";
-                    node.className = "text-2xl font-black text-red-600 block mt-1 font-mono";
-                    const statusDiv = node.nextElementSibling;
-                    if (statusDiv) {
-                        statusDiv.innerHTML = `
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-600 flex-shrink-0"></span>
-                            <span class="text-[10px] text-red-600 font-bold uppercase tracking-wider block">Waktu Subsidi Telah Berakhir</span>
-                        `;
-                    }
+                    node.textContent = "Waktu Habis";
                     clearInterval(countdownInterval);
                     return;
                 }
