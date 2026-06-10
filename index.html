@@ -450,7 +450,10 @@
             try {
                 await fetch(PAYMENT_API.base + '/create', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({ orderId, name, nim, amount }),
                 });
                 if (note) note.textContent = 'Mohon tunggu, QR sedang disiapkan…';
@@ -466,9 +469,24 @@
             if (box) box.innerHTML = '<div class="text-center px-3"><div class="mx-auto mb-2 w-7 h-7 border-2 border-slate-200 border-t-slate-500 rounded-full animate-spin"></div><span class="text-xs text-slate-400">Menyiapkan QR pembayaran…</span></div>';
         }
 
-        function showQR(url) {
+        async function showQR(url) {
             const box = document.getElementById('qrBox');
-            if (box) box.innerHTML = `<img alt="QR pembayaran" class="w-full h-full p-1.5 rounded-lg" src="${url}">`;
+            if (!box) return;
+            // Jika mode contoh (bukan ngrok), langsung set src
+            if (!PAYMENT_API.base) {
+                box.innerHTML = `<img alt="QR pembayaran" class="w-full h-full p-1.5 rounded-lg" src="${url}">`;
+                return;
+            }
+            try {
+                const res = await fetch(url, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const blob = await res.blob();
+                const objectURL = URL.createObjectURL(blob);
+                box.innerHTML = `<img alt="QR pembayaran" class="w-full h-full p-1.5 rounded-lg" src="${objectURL}">`;
+            } catch (e) {
+                box.innerHTML = '<span class="text-xs text-red-500">Gagal memuat gambar QR</span>';
+            }
         }
 
         // Polling status: tunggu qrReady (admin balas QR) lalu tunggu paid (admin konfirmasi).
@@ -477,7 +495,9 @@
             let qrShown = false;
             _payPoll = setInterval(async () => {
                 try {
-                    const res = await fetch(PAYMENT_API.base + '/status?orderId=' + encodeURIComponent(orderId));
+                    const res = await fetch(PAYMENT_API.base + '/status?orderId=' + encodeURIComponent(orderId), {
+                        headers: { 'ngrok-skip-browser-warning': 'true' }
+                    });
                     const data = await res.json();           // { status, qrReady }
                     if (data.qrReady && !qrShown) {
                         qrShown = true;
