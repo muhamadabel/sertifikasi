@@ -423,7 +423,7 @@
                         <li>Selesaikan pembayaran. Status terverifikasi otomatis.</li>
                     </ol>
 
-                    <button onclick="confirmPaid('${orderId}')" class="btn-lift w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm py-3 rounded-xl">
+                    <button id="payBtn" onclick="confirmPaid('${orderId}')" class="btn-lift w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm py-3 rounded-xl">
                         Saya Sudah Membayar
                     </button>
                     <p class="text-[11px] text-center text-slate-400">Butuh bantuan? Hubungi admin bootcamp via Telegram.</p>
@@ -514,6 +514,11 @@
 
         async function confirmPaid(orderId) {
             if (!PAYMENT_API.base) { showPaid(orderId); return; }   // simulasi (mockup)
+            const payBtn = document.getElementById('payBtn');
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.className = 'w-full bg-slate-400 text-white font-semibold text-sm py-3 rounded-xl cursor-not-allowed';
+            }
             const s = document.getElementById('payStatus');
             if (s) {
                 s.className = 'rounded-xl p-3 text-sm text-center bg-slate-50 text-slate-500 flex items-center justify-center gap-2';
@@ -535,12 +540,20 @@
                         s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Memproses verifikasi pembayaran…';
                     }
                 } else {
+                    if (payBtn) {
+                        payBtn.disabled = false;
+                        payBtn.className = 'btn-lift w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm py-3 rounded-xl';
+                    }
                     if (s) {
                         s.className = 'rounded-xl p-3 text-sm text-center bg-red-50 text-red-700';
                         s.textContent = 'Gagal mengirim konfirmasi ke admin. Silakan coba lagi.';
                     }
                 }
             } catch (err) {
+                if (payBtn) {
+                    payBtn.disabled = false;
+                    payBtn.className = 'btn-lift w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm py-3 rounded-xl';
+                }
                 if (s) {
                     s.className = 'rounded-xl p-3 text-sm text-center bg-red-50 text-red-700';
                     s.textContent = 'Gagal terhubung ke server. Periksa koneksi internet Anda.';
@@ -559,6 +572,15 @@
                 s.classList.remove('hidden');
                 s.innerHTML = 'Pembayaran terverifikasi ✓<br><span class="text-xs font-normal">Order ' + orderId + '. Pendaftaran berhasil diproses. Informasi onboarding akan segera dikirimkan ke kontak Anda.</span>';
             }
+            
+            // Ubah tombol "Saya Sudah Membayar" menjadi "Salin Kode Transaksi"
+            const payBtn = document.getElementById('payBtn');
+            if (payBtn) {
+                payBtn.disabled = false;
+                payBtn.textContent = 'Salin Kode Transaksi';
+                payBtn.className = 'btn-lift w-full bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-3 rounded-xl transition';
+                payBtn.onclick = () => copyTransactionCode(orderId);
+            }
         }
 
         function showExpired() {
@@ -568,6 +590,13 @@
                 s.className = 'rounded-xl p-3 text-sm text-center bg-red-50 text-red-700';
                 s.classList.remove('hidden');
                 s.textContent = 'Waktu pembayaran habis. Tutup dan ulangi pendaftaran.';
+            }
+            
+            // Nonaktifkan tombol pembayaran
+            const payBtn = document.getElementById('payBtn');
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.className = 'w-full bg-slate-300 text-slate-500 font-semibold text-sm py-3 rounded-xl cursor-not-allowed';
             }
         }
 
@@ -579,6 +608,29 @@
                 s.classList.remove('hidden');
                 s.innerHTML = 'Pembayaran ditolak/batal ❌<br><span class="text-xs font-normal">Pembayaran Anda ditolak oleh admin. Silakan hubungi kami via Telegram untuk konfirmasi.</span>';
             }
+            
+            // Nonaktifkan tombol pembayaran
+            const payBtn = document.getElementById('payBtn');
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.className = 'w-full bg-slate-300 text-slate-500 font-semibold text-sm py-3 rounded-xl cursor-not-allowed';
+            }
+        }
+
+        function copyTransactionCode(orderId) {
+            navigator.clipboard.writeText(orderId).then(() => {
+                const payBtn = document.getElementById('payBtn');
+                if (payBtn) {
+                    payBtn.textContent = 'Kode Transaksi Tersalin! ✓';
+                    payBtn.className = 'w-full bg-green-700 text-white font-semibold text-sm py-3 rounded-xl transition';
+                    setTimeout(() => {
+                        payBtn.textContent = 'Salin Kode Transaksi';
+                        payBtn.className = 'btn-lift w-full bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-3 rounded-xl transition';
+                    }, 2000);
+                }
+            }).catch(() => {
+                alert('Kode Transaksi: ' + orderId);
+            });
         }
 
         function startCountdown() {
