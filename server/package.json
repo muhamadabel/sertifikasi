@@ -1,0 +1,19 @@
+{
+  "name": "abelos-pay-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend perantara web <-> bot Telegram untuk alur pembayaran QR manual",
+  "main": "bot-server.js",
+  "scripts": {
+    "start": "node bot-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}
