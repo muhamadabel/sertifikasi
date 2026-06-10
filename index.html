@@ -61,8 +61,8 @@
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <div class="reveal mb-6">
-            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Direktori Kelulusan Batch Mei 2026</h1>
-            <p class="text-sm text-slate-500 mt-1 max-w-2xl">Pilih salah satu alumni pada direktori di bawah ini untuk menampilkan profil pencapaian, transkrip proyek, beserta dokumen sertifikasi digital resmi.</p>
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Peringkat dan Sertifikasi Bootcamp Batch 2026</h1>
+            <p class="text-sm text-slate-500 mt-1 max-w-2xl">Selamat atas selesainya Bootcamp batch 2026</p>
         </div>
 
         <div id="tabelDirektori" class="reveal border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden scroll-mt-20">
@@ -518,7 +518,7 @@
             if (s) {
                 s.className = 'rounded-xl p-3 text-sm text-center bg-slate-50 text-slate-500 flex items-center justify-center gap-2';
                 s.classList.remove('hidden');
-                s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Meminta verifikasi ke admin…';
+                s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Sedang memproses…';
             }
 
             try {
@@ -532,7 +532,7 @@
                 });
                 if (res.ok) {
                     if (s) {
-                        s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Admin sedang memverifikasi pembayaran…';
+                        s.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></span> Memproses verifikasi pembayaran…';
                     }
                 } else {
                     if (s) {
@@ -557,7 +557,7 @@
             if (s) {
                 s.className = 'rounded-xl p-3 text-sm text-center bg-green-50 text-green-700 font-medium';
                 s.classList.remove('hidden');
-                s.innerHTML = 'Pembayaran terverifikasi ✓<br><span class="text-xs font-normal">Order ' + orderId + '. Admin akan menghubungimu untuk jadwal onboarding.</span>';
+                s.innerHTML = 'Pembayaran terverifikasi ✓<br><span class="text-xs font-normal">Order ' + orderId + '. Pendaftaran berhasil diproses. Informasi onboarding akan segera dikirimkan ke kontak Anda.</span>';
             }
         }
 
