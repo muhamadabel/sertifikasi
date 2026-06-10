@@ -41,7 +41,7 @@
     <header id="siteHeader" class="bg-white border-b border-slate-200 sticky top-0 z-50 transition-shadow duration-300">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-2 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
-                <img src="revou-logo.png" alt="ReVoU Logo" class="h-8 w-8 object-contain">
+                <img src="revou-logo.png" alt="ReVoU Logo" class="h-8 w-auto object-contain">
                 <span class="text-xl font-bold tracking-tight text-slate-900">Re<span class="text-[#594500]">VoU</span></span>
             </div>
             <div>
@@ -56,9 +56,19 @@
     <!-- Hero Section with Soft Yellow Background -->
     <section class="bg-[#FFFBEB] border-b border-[#594500]/5 py-12">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="reveal">
-                <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Peringkat dan Sertifikasi Bootcamp Batch 2026</h1>
-                <p class="text-sm text-[#594500]/80 mt-2 max-w-2xl font-medium">Selamat atas selesainya Bootcamp batch 2026</p>
+            <div class="reveal flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Peringkat dan Sertifikasi Bootcamp Batch 2026</h1>
+                    <p class="text-sm text-[#594500]/80 mt-2 max-w-2xl font-medium">Selamat atas selesainya Bootcamp batch 2026</p>
+                </div>
+                <div class="bg-white border border-[#FAE082] px-5 py-4 rounded-2xl shadow-sm min-w-[280px] md:self-center shrink-0">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Sisa Waktu Klaim Subsidi</span>
+                    <span id="subsidyCountdown" class="text-2xl font-black text-[#594500] block mt-1 font-mono">--j --m --d</span>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="w-2 h-2 rounded-full bg-red-500 ping-dot flex-shrink-0"></span>
+                        <span class="text-[10px] text-red-600 font-bold uppercase tracking-wider block">Berakhir Hari Ini Jam 12.00 WIB</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -237,7 +247,7 @@
                         </div>
 
                         <div class="flex items-center justify-center space-x-2.5 mb-6">
-                            <img src="revou-logo.png" alt="ReVoU Logo" class="h-9 w-9 object-contain">
+                            <img src="revou-logo.png" alt="ReVoU Logo" class="h-9 w-auto object-contain">
                             <span class="text-2xl font-bold tracking-tight text-slate-900">Re<span class="text-[#594500]">VoU</span> Coding Camp</span>
                         </div>
 
@@ -648,6 +658,45 @@
             _payTimer = setInterval(render, 1000);
         }
 
+        function startSubsidyCountdown() {
+            // Target: June 10, 2026, at 12:00:00 WIB (GMT+7)
+            const targetTime = new Date('2026-06-10T12:00:00+07:00').getTime();
+            
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const diff = targetTime - now;
+                const node = document.getElementById('subsidyCountdown');
+                if (!node) return;
+                
+                if (diff <= 0) {
+                    node.innerHTML = "00j 00m 00d";
+                    node.className = "text-2xl font-black text-red-600 block mt-1 font-mono";
+                    const statusDiv = node.nextElementSibling;
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-600 flex-shrink-0"></span>
+                            <span class="text-[10px] text-red-600 font-bold uppercase tracking-wider block">Waktu Subsidi Telah Berakhir</span>
+                        `;
+                    }
+                    clearInterval(countdownInterval);
+                    return;
+                }
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                const hStr = String(hours).padStart(2, '0');
+                const mStr = String(minutes).padStart(2, '0');
+                const sStr = String(seconds).padStart(2, '0');
+                
+                node.textContent = `${hStr}j ${mStr}m ${sStr}d`;
+            };
+            
+            updateTimer();
+            const countdownInterval = setInterval(updateTimer, 1000);
+        }
+
         const io = new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); } });
         }, { threshold: 0.12 });
@@ -658,6 +707,7 @@
 
         renderDirectory();
         clearDetail();
+        startSubsidyCountdown();
     </script>
 </body>
 </html>
